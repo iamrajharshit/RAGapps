@@ -6,4 +6,4 @@
 
 ## Demo:
 
-<img src="https://github.com/iamrajharshit/RAGapps/blob/main/assets/Demo.gif" width="720" height="480" />
+<img src="https://github.com/iamrajharshit/RAGapps/blob/main/assets/Demo.gif" width="1080" height="720" />
