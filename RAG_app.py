@@ -1,11 +1,12 @@
-#api_key
-API_KEY ="AIzaSyAezKZT5ODtVc6bczVqg2FWQZ2YSIerbbY"
 import urllib
 import warnings
 from pathlib import Path as p
 from pprint import pprint
 
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 import streamlit as st
 import fitz  # PyMuPDF
@@ -28,10 +29,8 @@ warnings.filterwarnings("ignore")
 # restart python kernal if issues with langchain import.
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-
-
 #Models
-model = ChatGoogleGenerativeAI(model="gemini-pro",google_api_key=API_KEY,temperature=0.5,convert_system_message_to_human=True)
+model = ChatGoogleGenerativeAI(model="gemini-pro",google_api_key=os.environ["API_KEY"],temperature=0.7,convert_system_message_to_human=True)
 
 #pdf
 def pdf_loader(uploaded_pdf):
@@ -47,7 +46,6 @@ def pdf_loader(uploaded_pdf):
 
 
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-
 def splitter(pages):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
     context = "\n\n".join(str(p.page_content) for p in pages)
@@ -56,13 +54,13 @@ def splitter(pages):
 
 
 def embed(texts):
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001",google_api_key=API_KEY)
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001",google_api_key=os.environ["API_KEY"])
     vector_index = Chroma.from_texts(texts, embeddings).as_retriever(search_kwargs={"k":5})
     return vector_index
 
 
 def qna(vector_index,question):
-    template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer. Keep the answer as concise as possible. Always say "thanks for asking!" at the end of the answer.
+    template = """Use the following pieces of context to answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer, replay Your Welcome! only when Thank you is said.
     {context}
     Question: {question}
     Helpful Answer:"""
@@ -73,6 +71,8 @@ def qna(vector_index,question):
         return_source_documents=True,
         chain_type_kwargs={"prompt": QA_CHAIN_PROMPT}
     )
+
+
     ques = question
     result = qa_chain({"query": ques})
 
@@ -83,9 +83,9 @@ def qna(vector_index,question):
 #streamlit app
 
 def main():
-    st.title("PDF Viewer App")
+    st.title("Chat with PDF")
 
-    uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
+    uploaded_file = st.file_uploader(" ### Upload a PDF file", type=["pdf"])
 
     if uploaded_file is not None:
         st.write("### PDF Preview:")
@@ -97,12 +97,12 @@ def main():
 
         
 
-        question=st.text_area("ask ques")
+        question=st.text_area("## Ask Ques")
         if st.button("Send"):
 
             ans=qna(vector_index,question)
 
-            st.markdown(f"## Answer:\n\n{ans}", unsafe_allow_html=True)
+            st.markdown(f"## Ans:\n\n{ans}", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
